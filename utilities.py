@@ -225,7 +225,7 @@ def plot_2d_gp(gp, inputs, predictions=None, figure=None, axis=None,
             axis.plot(inputs[[0, -1], unfixed[0]], [fmin, fmin], 'k--')
 
         if safe_region is not None:
-            axis.fill_between()
+            axis.axvspan(safe_region[0],safe_region[1],facecolor = 'r',alpha=0.3)
 
         return axis
 
