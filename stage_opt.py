@@ -315,6 +315,8 @@ class StageOpt(GaussianProcessOptimization):
         该列表用于衡量GP不确定度在不同输入大小上的损失。
         被设置为每个kernel的最大方差
         你应该尽可能设置其为"auto"，除非kernel是不合适的
+    bound_index:safe region
+        已经可以被确定的安全区间
 
     Examples
     --------
@@ -483,8 +485,7 @@ class StageOpt(GaussianProcessOptimization):
             self.Q[:, 2 * i + 1] = mean + beta * std_dev
 
     # 计算安全集合S_t
-    # 重写计算安全集合函数
-    # 使用一范数定义d(x,x')
+    # 重写计算安全集合函数，原函数未使用d(x,x')在重写函数中使用
     # 更新安全区间bound
     def compute_safe_set(self):
         """Compute only the safe set based on the current confidence bounds."""
@@ -494,11 +495,11 @@ class StageOpt(GaussianProcessOptimization):
                 d = min(abs(self.inputs[i] - self.bound[:]))
                 # print(d)
                 self.S[i] = np.all(self.Q[i, ::2] > self.fmin + d * self.liptschitz)
-                # if self.S[i]:
-                #     self.bound[0] = min(self.bound[0], self.inputs[i])
-                #     self.bound[1] = max(self.bound[1], self.inputs[i])
-                #     self.bound_index[0] = min(self.bound_index[0], i)
-                #     self.bound_index[0] = max(self.bound_index[0], i)
+                if self.S[i]:
+                    self.bound[0] = min(self.bound[0], self.inputs[i])
+                    self.bound[1] = max(self.bound[1], self.inputs[i])
+                    self.bound_index[0] = min(self.bound_index[0], i)
+                    self.bound_index[0] = max(self.bound_index[0], i)
             else:
                 self.S[i] = True
 
@@ -560,7 +561,6 @@ class StageOpt(GaussianProcessOptimization):
         # Update safe set (if full_sets is False this is at most one point
         self.G[s] = G_safe
 
-    # 得到扩张阶段的扩展点
     def get_expand_point(self):
         l = self.Q[:, ::2]
         u = self.Q[:, 1::2]
@@ -580,19 +580,15 @@ class StageOpt(GaussianProcessOptimization):
                     temp_index = i
         return self.inputs[temp_index,:]
 
-    # 得到优化阶段的扩展点
     def get_optimize_point(self):
         if not np.any(self.S):
             raise EnvironmentError('There are no safe points to evaluate.')
 
         max_id = np.argmax(self.Q[self.S, 1])
         x = self.inputs[self.S, :][max_id, :]
-        self.bound[0] = min(self.bound[0],x[0])
-        self.bound[1] = max(self.bound[0], x[0])
-
         return x
 
-    # 对安全域safe region进行扩张
+
     def expansion(self, context=None):
         self.update_confidence_intervals(context=context)
 
@@ -601,7 +597,6 @@ class StageOpt(GaussianProcessOptimization):
 
         return self.get_expand_point()
 
-    # 求解函数最优值
     def optimize(self, context=None, ucb=False):
         """Run Safe Bayesian optimization and get the next parameters.
 
