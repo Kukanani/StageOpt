@@ -1,0 +1,12 @@
+setup.py
+stageopt/__init__.py
+stageopt/gp_opt.py
+stageopt/stage_opt.py
+stageopt/swarm.py
+stageopt/test.py
+stageopt/test_safeopt.py
+stageopt/utilities.py
+stageopt.egg-info/PKG-INFO
+stageopt.egg-info/SOURCES.txt
+stageopt.egg-info/dependency_links.txt
+stageopt.egg-info/top_level.txt

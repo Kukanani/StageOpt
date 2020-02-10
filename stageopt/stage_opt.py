@@ -16,9 +16,9 @@ from scipy.special import expit
 from scipy.stats import norm
 from builtins import range
 
-from utilities import (plot_2d_gp, plot_3d_gp, plot_contour_gp,
+from .utilities import (plot_2d_gp, plot_3d_gp, plot_contour_gp,
                        linearly_spaced_combinations)
-from swarm import SwarmOptimization
+from .swarm import SwarmOptimization
 
 import logging
 
@@ -359,7 +359,6 @@ class StageOpt(GaussianProcessOptimization):
 
         # 使用bound用来表示可确定的安全区间，初始时，安全区间的范围为空
         self.bound = np.array([parameter_set[Seed][0], parameter_set[Seed][0]])
-        self.bound_index = np.array([Seed, Seed])
 
         if self.num_contexts > 0:
             context_shape = (parameter_set.shape[0], self.num_contexts)
@@ -498,8 +497,6 @@ class StageOpt(GaussianProcessOptimization):
                 if self.S[i]:
                     self.bound[0] = min(self.bound[0], self.inputs[i])
                     self.bound[1] = max(self.bound[1], self.inputs[i])
-                    self.bound_index[0] = min(self.bound_index[0], i)
-                    self.bound_index[0] = max(self.bound_index[0], i)
             else:
                 self.S[i] = True
 
